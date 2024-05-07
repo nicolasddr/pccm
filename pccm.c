@@ -1,73 +1,59 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct Node{
-    int vertice;
-    int peso;
-    struct Node *prox;
-} Node;
+//Struct para representar um arco
+typedef struct _arco {
+    int destino;
+    int custo;
+    struct _arco *prox; //Ponteiro para o próximo arco da mesma origem
+} Arco;
 
-typedef struct {
-    int n_vertices;
-    int n_arcos;
-    Node **adjacencias;
-} Grafo;
+//Structt para representar um vértice do grafo
+typedef struct _vertice {
+    int indice;
+    int g_saida;
+    int g_entrada;
+    Arco *adjacencias; //Lista de adjacencias que contem os arcos que saem deste vertice
+} Vertice;
 
-void inicializaGrafo(Grafo *grafo, int n_vertices){
-    grafo->n_vertices = n_vertices;
-    grafo->n_arcos = 0;
-    grafo->adjacencias = (Node**)malloc(n_vertices * sizeof(Node*));
-    for(int i=0; i<n_vertices; i++){
-        grafo->adjacencias[i] = NULL;
-    }
+void adicionarArco(Vertice *vertice, int destino, int custo){
+    Arco *novo = (Arco*)malloc(sizeof(Arco));
+
+    novo->destino = destino;
+    novo->custo = custo;
+    novo->prox = vertice->adjacencias; //Proximo arco aponta para a lista de adjacencias
+
+    //Adiciona novo arco a lista de arcos que saem deste vertice
+    vertice->adjacencias = novo;
+
 }
 
-void imprimirGrafo(Grafo *grafo){
-    printf("\nImprimindo grafo com %d vértices e %d arcos\n", grafo->n_vertices, grafo->n_arcos);
-    Node* atual;
-    for(int i=0; i<grafo->n_vertices; i++){
-        printf("[%d]", i);
-        atual = grafo->adjacencias[i];
-        while(atual){
-            printf(" ->%d (%d)", atual->vertice, atual->peso);
+void imprimirGrafo(Vertice *vertices, int n_vertices){
+    
+    for(int i=0; i<n_vertices; i++){
+        printf("Vértice %d:", i);
+        Arco *atual = vertices[i].adjacencias;
+
+        while(atual != NULL){
+            printf(" -> %d (%d)", atual->destino, atual->custo);
             atual = atual->prox;
         }
         printf("\n");
-    }
-}
 
-void insereAresta(Grafo *grafo, int v1, int v2, int peso){
-    Node *novo, *ant = NULL;
-    Node *atual = grafo->adjacencias[v1];
-    while(atual && atual->vertice<v2){
-        ant = atual;
-        atual = atual->prox;
     }
 
-    novo = (Node*)malloc(sizeof(Node));
-    novo->vertice = v2;
-    novo->peso = peso;
-    novo->prox = atual;
-
-    if(ant) ant->prox = novo;
-    else grafo->adjacencias[v1] = novo;
-
-    grafo->n_arcos++;
-
 }
+
+
+
+
 
 int main(int argc, char *argv[]){
-
     char *arquivo = argv[1];
     char inicio = argv[2][0];
 
     int n_vertices, n_arcos;
     char id;
-
-    int a, b, c;
-
-    printf("Grafos: %s\n", arquivo);
-    printf("Início: %c\n", inicio);
 
     //Abre o arquivo de entrada .txt com os grafos
     FILE *entrada = fopen(arquivo, "r");
@@ -75,33 +61,40 @@ int main(int argc, char *argv[]){
     //Cria um vetor para armazenar uma linha
     char linha[256];
 
-
-    //Armazena a entrada de uma linha
+    //Armazena a entrada da primeira linha
     fgets(linha, 256, entrada);
 
     //Lê o a primeira linha e armazena os valores do número de vértices e arcos
     sscanf(linha, "%c %d %d", &id, &n_vertices, &n_arcos);
 
-    
+    //Inicializa vetor que contem os vertices
+    Vertice *vertices = (Vertice*)malloc(sizeof(Vertice) * n_vertices); 
 
-    Grafo *grafo = (Grafo*)malloc(sizeof(Grafo)); 
-    inicializaGrafo(grafo, n_vertices);
+    int indice, g_saida, g_entrada;
+    for(int i=0; i<n_vertices; i++){
+        fgets(linha, 256, entrada);
+        sscanf(linha, "%c %d %d %d", &id, &indice, &g_saida, &g_entrada);
 
-    //Lê cada linha e armazena os valores dos vértices e arcos nas respectivas variáveis
-    while(id != 'T'){
-        fgets(linha, 256, entrada); 
-        sscanf(linha, "%c %d %d %d", &id, &a, &b, &c);
+        vertices[i].indice = indice;
+        vertices[i].g_saida = g_saida;
+        vertices[i].g_entrada = g_entrada;
+        vertices[i].adjacencias = NULL;
 
-        if(id == 'N'){
-            printf("vertice");
-        } else if(id == 'E'){
-            insereAresta(grafo, a, b, c);
-        }
-
-        
     }
 
-    imprimirGrafo(grafo);
+    int origem, destino, custo;
+    for(int i=0; i<n_arcos; i++){
+        fgets(linha, 256, entrada);
+        sscanf(linha, "%c %d %d %d", &id, &origem, &destino, &custo);
+
+        //Adiciona arco na lista de adjacencias do vertice de origem deste arco
+        adicionarArco(&vertices[origem], destino, custo); 
+    
+    }
+
+    imprimirGrafo(vertices, n_vertices);
+
+    free(vertices);
 
     return 0;
 }
