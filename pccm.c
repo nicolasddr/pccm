@@ -45,12 +45,55 @@ void imprimirGrafo(Vertice *vertices, int n_vertices){
 }
 
 
+void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
 
+    int anterior[n_vertices];
+    int distancia[n_vertices];
+
+    for(int i=0; i<n_vertices; i++){
+        distancia[i] = 100000;
+        anterior[i] = -1;
+    }
+
+    distancia[inicio] = 0;
+
+    //Repete o relaxamento por n(G) - 1
+    for(int i=0; i<n_vertices-1; i++){
+
+        //Percorre todos os vertices para percorrer as adjacencias
+        for(int origem=0; origem<n_vertices; origem++){
+            Arco *atual = vertices[origem].adjacencias;
+
+            //Percorre todas as adjacencias do vertice de origem
+            while(atual != NULL){
+                int u = origem;
+                int v = atual->destino;
+                int custo = atual->custo;
+
+                if((distancia[u] != 100000) && (distancia[u] + custo < distancia[v]) ){
+                    distancia[v] = distancia[u] + custo;
+                    anterior[v] = u;
+                }
+                //Vai para o proximo arco da lista de adjacencias do vertice de origem
+                atual = atual->prox;
+            }
+        }
+    }
+
+    printf("Menor caminho a partir do vértice %d:\n", inicio);
+    for(int i = 0; i < n_vertices; i++){
+        printf("Vértice %d: Distância = %d, Anterior = %d\n", i, distancia[i], anterior[i]);
+    }
+
+
+}
 
 
 int main(int argc, char *argv[]){
     char *arquivo = argv[1];
-    char inicio = argv[2][0];
+    char s = argv[2][0];
+
+    int inicio = atoi(&s);
 
     int n_vertices, n_arcos;
     char id;
@@ -92,7 +135,9 @@ int main(int argc, char *argv[]){
     
     }
 
-    imprimirGrafo(vertices, n_vertices);
+    //imprimirGrafo(vertices, n_vertices);
+
+    bellmanFord(vertices, n_vertices, inicio);
 
     free(vertices);
 
