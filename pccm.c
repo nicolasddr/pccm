@@ -80,6 +80,27 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
         }
     }
 
+
+
+    
+    //Verifica se há ciclos de peso negativo
+    for(int origem=0; origem<n_vertices; origem++){
+        Arco *atual = vertices[origem].adjacencias;
+        while(atual != NULL){
+            int u = origem;
+            int v = atual->destino;
+            int custo = atual->custo;
+
+            if(distancia[u] != 100000 && ((distancia[u] + custo) < distancia[v])){
+                printf("O grafo contém ciclo de peso negativo.\n");
+                return;
+            }
+            atual = atual->prox;
+        }
+    }
+
+
+
     printf("Menor caminho a partir do vértice %d:\n", inicio);
     for(int i = 0; i < n_vertices; i++){
         printf("Vértice %d: Distância = %d, Anterior = %d\n", i, distancia[i], anterior[i]);
