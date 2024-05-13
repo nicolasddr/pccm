@@ -14,6 +14,9 @@ typedef struct _vertice {
     int g_saida;
     int g_entrada;
     Arco *adjacencias; //Lista de adjacencias que contem os arcos que saem deste vertice
+    int processado;
+    int reduzido_processado;
+    int reduzido;
 } Vertice;
 
 void adicionarArco(Vertice *vertice, int destino, int custo){
@@ -44,24 +47,56 @@ void imprimirGrafo(Vertice *vertices, int n_vertices){
 
 }
 
+void imprimirOrdem(int ordem[], int n_vertices, int i){
+    printf("P %d", i);
+    for(int j=0; j<n_vertices; j++){
+        printf(" %d", ordem[j]);
+    }
+    printf("\n");
+}
+
+
 
 void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
 
+    //Inicializa vetores anteriorm distancia e ordem inicial
     int anterior[n_vertices];
     int distancia[n_vertices];
+    int ordem_inicial[n_vertices];
 
+
+    //Atribui valores iniciais dos vetores
     for(int i=0; i<n_vertices; i++){
         distancia[i] = 100000;
         anterior[i] = -1;
+        ordem_inicial[i] = i; //Inicializa o vetor com os vértices em sequência
+        vertices[i].processado = 0; //Marca todos os vértices como não processado
+        vertices[i].reduzido = 0;
+        vertices[i].reduzido_processado = 0;
     }
-
     distancia[inicio] = 0;
 
+    //Preparar ordem inicial
+    for(int i=inicio; i>0; i--){
+       ordem_inicial[i] =ordem_inicial[i-1];
+    }
+    ordem_inicial[0] = inicio;
+
+
+
     //Repete o relaxamento por n(G) - 1
-    for(int i=0; i<n_vertices-1; i++){
+    for(int i=0; i<n_vertices; i++){
+        
+        imprimirOrdem(ordem_inicial, n_vertices, i);
 
         //Percorre todos os vertices para percorrer as adjacencias
-        for(int origem=0; origem<n_vertices; origem++){
+        for(int j=0; j<n_vertices; j++){
+
+            int origem = ordem_inicial[j];
+
+            //Marca como processado
+            vertices[origem].processado = 1;
+
             Arco *atual = vertices[origem].adjacencias;
 
             //Percorre todas as adjacencias do vertice de origem
@@ -73,11 +108,63 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
                 if((distancia[u] != 100000) && (distancia[u] + custo < distancia[v]) ){
                     distancia[v] = distancia[u] + custo;
                     anterior[v] = u;
+
+                    //Se o vértice foi reduzido após ser processado
+                    if(vertices[u].processado == 0){
+                        vertices[j].reduzido = 1; //Vertice foi reduzido e só foi processado depois
+                    } else {
+                        vertices[j].reduzido_processado = 1;
+                    }
+
+                    
                 }
                 //Vai para o proximo arco da lista de adjacencias do vertice de origem
                 atual = atual->prox;
             }
+
         }
+
+        //Alterar ordem
+        int nova_ordem[n_vertices];
+        
+        //Vértices reduzidos após serem processados
+        int ki=0;
+        for(int k=0; k<n_vertices; k++){
+            if(vertices[k].reduzido_processado == 1){
+                nova_ordem[ki] = k;
+                ki++;
+            }
+        }
+
+        //Vértices reduzidos e depois processados
+        for(int k=0; k<n_vertices; k++){
+            if(vertices[k].reduzido == 1){
+                nova_ordem[ki] = k;
+                ki++;
+
+            }
+        }
+
+        //Vértices que não foram reduzidos
+        for(int k=0; k<n_vertices; k++){
+            if(vertices[k].reduzido == 0 && vertices[k].reduzido_processado == 0){
+                nova_ordem[ki] = k;
+                ki++;
+            }
+        }
+
+        for(int l=0; l<n_vertices; l++){
+            ordem_inicial[l] = nova_ordem[l]; 
+        }
+
+        //Desmarcar vértices
+        for(int f=0; f<n_vertices; f++){
+            vertices[f].processado = 0;
+            vertices[f].reduzido = 0;
+            vertices[f].reduzido_processado = 0;
+        }
+
+
     }
 
 
