@@ -48,7 +48,7 @@ void imprimirGrafo(Vertice *vertices, int n_vertices){
 }
 
 void imprimirOrdem(int ordem[], int n_vertices, int i){
-    printf("P %d", i);
+    printf("O %d", i);
     for(int j=0; j<n_vertices; j++){
         printf(" %d", ordem[j]);
     }
@@ -94,8 +94,7 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
 
             int origem = ordem_inicial[j];
 
-            //Marca como processado
-            vertices[origem].processado = 1;
+            
 
             Arco *atual = vertices[origem].adjacencias;
 
@@ -110,14 +109,17 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
                     anterior[v] = u;
 
                     //Se o vértice foi reduzido após ser processado
-                    if(vertices[u].processado == 0){
-                        vertices[j].reduzido = 1; //Vertice foi reduzido e só foi processado depois
+                    if(vertices[v].processado == 0){
+                        vertices[v].reduzido = 1; //Vertice foi reduzido e só foi processado depois
                     } else {
-                        vertices[j].reduzido_processado = 1;
+                        vertices[v].reduzido_processado = 1;
                     }
 
                     
                 }
+                //Marca como processado
+                vertices[origem].processado = 1;
+    
                 //Vai para o proximo arco da lista de adjacencias do vertice de origem
                 atual = atual->prox;
             }
@@ -156,13 +158,14 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
         for(int l=0; l<n_vertices; l++){
             ordem_inicial[l] = nova_ordem[l]; 
         }
-
+        
         //Desmarcar vértices
         for(int f=0; f<n_vertices; f++){
             vertices[f].processado = 0;
             vertices[f].reduzido = 0;
             vertices[f].reduzido_processado = 0;
         }
+        
 
 
     }
@@ -186,7 +189,43 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
         }
     }
 
+    int comprimento[n_vertices];
+    for(int i=0; i<n_vertices; i++){
+        comprimento[i] = 1;
+    }
 
+    //Imprimir o caminho
+    for(int t = 0; t<n_vertices; t++){
+       
+
+        //Achar o caminho de s até o vértice t
+        int ant = anterior[t];
+        int caminho[n_vertices];
+        caminho[0] = t; //O fim do caminho de s até t é o próprio vértice t
+
+        for(int i=1; i<n_vertices; i++){
+            if(ant == -1){
+                break;
+            }
+            caminho[i] = ant; //Adiciona o anterior ao caminho
+            comprimento[t] += 1;
+            ant = anterior[ant];
+        }
+
+        //Falta implmentar a impressão caso não exista caminho, usar o comprimento ou distancia ou anterior se não for o inicio
+        
+        if(distancia[t] >= 0){
+            printf("P %d %d %d", t, distancia[t], comprimento[t]);
+        } else {
+            printf("P %d", t);
+        }
+        
+        for(int i=comprimento[t]-1; i>=0; i--){
+            printf(" %d", caminho[i]);
+        }
+        printf("\n");
+        
+    }
 
     printf("Menor caminho a partir do vértice %d:\n", inicio);
     for(int i = 0; i < n_vertices; i++){
