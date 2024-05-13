@@ -15,8 +15,8 @@ typedef struct _vertice {
     int g_entrada;
     Arco *adjacencias; //Lista de adjacencias que contem os arcos que saem deste vertice
     int processado;
-    int reduzido_processado;
-    int reduzido;
+    int reduzido_processado; //Se foi reduzido após ser processado
+    int reduzido; //Se foi reduzido, mas não processado
 } Vertice;
 
 void adicionarArco(Vertice *vertice, int destino, int custo){
@@ -113,6 +113,7 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
                         vertices[v].reduzido = 1; //Vertice foi reduzido e só foi processado depois
                     } else {
                         vertices[v].reduzido_processado = 1;
+                        vertices[v].reduzido = 0;
                     }
 
                     
@@ -132,16 +133,16 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
         //Vértices reduzidos após serem processados
         int ki=0;
         for(int k=0; k<n_vertices; k++){
-            if(vertices[k].reduzido_processado == 1){
-                nova_ordem[ki] = k;
+            if(vertices[ordem_inicial[k]].reduzido_processado == 1){
+                nova_ordem[ki] = ordem_inicial[k];
                 ki++;
             }
         }
 
         //Vértices reduzidos e depois processados
         for(int k=0; k<n_vertices; k++){
-            if(vertices[k].reduzido == 1){
-                nova_ordem[ki] = k;
+            if(vertices[ordem_inicial[k]].reduzido == 1){
+                nova_ordem[ki] = ordem_inicial[k];
                 ki++;
 
             }
@@ -149,8 +150,8 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
 
         //Vértices que não foram reduzidos
         for(int k=0; k<n_vertices; k++){
-            if(vertices[k].reduzido == 0 && vertices[k].reduzido_processado == 0){
-                nova_ordem[ki] = k;
+            if(vertices[ordem_inicial[k]].reduzido == 0 && vertices[ordem_inicial[k]].reduzido_processado == 0){
+                nova_ordem[ki] = ordem_inicial[k];
                 ki++;
             }
         }
@@ -172,22 +173,7 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
 
 
 
-    
-    //Verifica se há ciclos de peso negativo
-    for(int origem=0; origem<n_vertices; origem++){
-        Arco *atual = vertices[origem].adjacencias;
-        while(atual != NULL){
-            int u = origem;
-            int v = atual->destino;
-            int custo = atual->custo;
-
-            if(distancia[u] != 100000 && ((distancia[u] + custo) < distancia[v])){
-                printf("O grafo contém ciclo de peso negativo.\n");
-                return;
-            }
-            atual = atual->prox;
-        }
-    }
+    //IMPRESSÃO DO CAMINHO
 
     int comprimento[n_vertices];
     for(int i=0; i<n_vertices; i++){
@@ -212,14 +198,17 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
             ant = anterior[ant];
         }
 
-        //Falta implmentar a impressão caso não exista caminho, usar o comprimento ou distancia ou anterior se não for o inicio
+        //Se existir ciclo negativo
+        if(distancia[t] < 0 && comprimento[t] > 0){
+            printf("C\n");
+            exit(0);
+        }
         
-        
-        //TESTAR TESTAR TESTAR
-        if(anterior[t] == -1 && t != s){
+
+        if(anterior[t] == -1 && t != inicio){ //Se não há caminho até o vértice t
             printf("U %d", t);
             printf("\n");
-        } else {
+        } else { //Existe camihno até o vértice t
             printf("P %d %d %d", t, distancia[t], comprimento[t]);
             for(int i=comprimento[t]-1; i>=0; i--){
                 printf(" %d", caminho[i]);
@@ -227,25 +216,9 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
             printf("\n");
         }
         
-        /*
-        if(distancia[t] >= 0){
-            printf("P %d %d %d", t, distancia[t], comprimento[t]);
-        } else {
-            printf("P %d", t);
-        }
         
-        
-        for(int i=comprimento[t]-1; i>=0; i--){
-            printf(" %d", caminho[i]);
-        }
-        printf("\n");
-        */
     }
 
-    printf("Menor caminho a partir do vértice %d:\n", inicio);
-    for(int i = 0; i < n_vertices; i++){
-        printf("Vértice %d: Distância = %d, Anterior = %d\n", i, distancia[i], anterior[i]);
-    }
 
 
 }
