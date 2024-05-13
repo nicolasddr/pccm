@@ -214,17 +214,32 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
 
         //Falta implmentar a impressão caso não exista caminho, usar o comprimento ou distancia ou anterior se não for o inicio
         
+        
+        //TESTAR TESTAR TESTAR
+        if(anterior[t] == -1 && t != s){
+            printf("U %d", t);
+            printf("\n");
+        } else {
+            printf("P %d %d %d", t, distancia[t], comprimento[t]);
+            for(int i=comprimento[t]-1; i>=0; i--){
+                printf(" %d", caminho[i]);
+            }
+            printf("\n");
+        }
+        
+        /*
         if(distancia[t] >= 0){
             printf("P %d %d %d", t, distancia[t], comprimento[t]);
         } else {
             printf("P %d", t);
         }
         
+        
         for(int i=comprimento[t]-1; i>=0; i--){
             printf(" %d", caminho[i]);
         }
         printf("\n");
-        
+        */
     }
 
     printf("Menor caminho a partir do vértice %d:\n", inicio);
