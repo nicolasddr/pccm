@@ -179,14 +179,16 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
     for(int i=0; i<n_vertices; i++){
         comprimento[i] = 1;
     }
-
-    //Imprimir o caminho
+    
+    
+    //Imprimir o caminho dos vértices
     for(int t = 0; t<n_vertices; t++){
        
 
         //Achar o caminho de s até o vértice t
         int ant = anterior[t];
         int caminho[n_vertices];
+
         caminho[0] = t; //O fim do caminho de s até t é o próprio vértice t
 
         for(int i=1; i<n_vertices; i++){
@@ -198,13 +200,9 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
             ant = anterior[ant];
         }
 
-        //Se existir ciclo negativo
-        if(distancia[t] < 0 && comprimento[t] > 0){
-            printf("C\n");
-            exit(0);
-        }
         
 
+        //Imprimir os caminhos
         if(anterior[t] == -1 && t != inicio){ //Se não há caminho até o vértice t
             printf("U %d", t);
             printf("\n");
@@ -217,8 +215,11 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
         }
         
         
+        
     }
 
+    
+    
 
 
 }
