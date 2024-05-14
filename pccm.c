@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+
+
 //Struct para representar um arco
 typedef struct _arco {
     int destino;
@@ -18,6 +21,9 @@ typedef struct _vertice {
     int reduzido_processado; //Se foi reduzido após ser processado
     int reduzido; //Se foi reduzido, mas não processado
 } Vertice;
+
+void imprimirCaminhos(Vertice *vertices, int anterior[], int distancia[], int n_vertices, int inicio);
+void bellmanFord(Vertice *vertices, int n_vertices, int inicio);
 
 void adicionarArco(Vertice *vertice, int destino, int custo){
     Arco *novo = (Arco*)malloc(sizeof(Arco));
@@ -55,124 +61,7 @@ void imprimirOrdem(int ordem[], int n_vertices, int i){
     printf("\n");
 }
 
-
-
-void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
-
-    //Inicializa vetores anteriorm distancia e ordem inicial
-    int anterior[n_vertices];
-    int distancia[n_vertices];
-    int ordem_inicial[n_vertices];
-
-
-    //Atribui valores iniciais dos vetores
-    for(int i=0; i<n_vertices; i++){
-        distancia[i] = 100000;
-        anterior[i] = -1;
-        ordem_inicial[i] = i; //Inicializa o vetor com os vértices em sequência
-        vertices[i].processado = 0; //Marca todos os vértices como não processado
-        vertices[i].reduzido = 0;
-        vertices[i].reduzido_processado = 0;
-    }
-    distancia[inicio] = 0;
-
-    //Preparar ordem inicial
-    for(int i=inicio; i>0; i--){
-       ordem_inicial[i] =ordem_inicial[i-1];
-    }
-    ordem_inicial[0] = inicio;
-
-
-
-    //Repete o relaxamento por n(G) - 1
-    for(int i=0; i<n_vertices; i++){
-        
-        imprimirOrdem(ordem_inicial, n_vertices, i);
-
-        //Percorre todos os vertices para percorrer as adjacencias
-        for(int j=0; j<n_vertices; j++){
-
-            int origem = ordem_inicial[j];
-
-            
-
-            Arco *atual = vertices[origem].adjacencias;
-
-            //Percorre todas as adjacencias do vertice de origem
-            while(atual != NULL){
-                int u = origem;
-                int v = atual->destino;
-                int custo = atual->custo;
-
-                if((distancia[u] != 100000) && (distancia[u] + custo < distancia[v]) ){
-                    distancia[v] = distancia[u] + custo;
-                    anterior[v] = u;
-
-                    //Se o vértice foi reduzido após ser processado
-                    if(vertices[v].processado == 0){
-                        vertices[v].reduzido = 1; //Vertice foi reduzido e só foi processado depois
-                    } else {
-                        vertices[v].reduzido_processado = 1;
-                        vertices[v].reduzido = 0;
-                    }
-
-                    
-                }
-                //Marca como processado
-                vertices[origem].processado = 1;
-    
-                //Vai para o proximo arco da lista de adjacencias do vertice de origem
-                atual = atual->prox;
-            }
-
-        }
-
-        //Alterar ordem
-        int nova_ordem[n_vertices];
-        
-        //Vértices reduzidos após serem processados
-        int ki=0;
-        for(int k=0; k<n_vertices; k++){
-            if(vertices[ordem_inicial[k]].reduzido_processado == 1){
-                nova_ordem[ki] = ordem_inicial[k];
-                ki++;
-            }
-        }
-
-        //Vértices reduzidos e depois processados
-        for(int k=0; k<n_vertices; k++){
-            if(vertices[ordem_inicial[k]].reduzido == 1){
-                nova_ordem[ki] = ordem_inicial[k];
-                ki++;
-
-            }
-        }
-
-        //Vértices que não foram reduzidos
-        for(int k=0; k<n_vertices; k++){
-            if(vertices[ordem_inicial[k]].reduzido == 0 && vertices[ordem_inicial[k]].reduzido_processado == 0){
-                nova_ordem[ki] = ordem_inicial[k];
-                ki++;
-            }
-        }
-
-        for(int l=0; l<n_vertices; l++){
-            ordem_inicial[l] = nova_ordem[l]; 
-        }
-        
-        //Desmarcar vértices
-        for(int f=0; f<n_vertices; f++){
-            vertices[f].processado = 0;
-            vertices[f].reduzido = 0;
-            vertices[f].reduzido_processado = 0;
-        }
-        
-
-
-    }
-
-
-
+void imprimirCaminhos(Vertice *vertices, int anterior[], int distancia[], int n_vertices, int inicio){
     //IMPRESSÃO DO CAMINHO
 
     int comprimento[n_vertices];
@@ -214,13 +103,120 @@ void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
             printf("\n");
         }
         
+    }
+}
+
+
+void bellmanFord(Vertice *vertices, int n_vertices, int inicio){
+
+    //Inicializa vetores anteriorm distancia e ordem inicial
+    int anterior[n_vertices];
+    int distancia[n_vertices];
+    int ordem_inicial[n_vertices];
+
+
+    //Atribui valores iniciais dos vetores
+    for(int i=0; i<n_vertices; i++){
+        distancia[i] = 100000;
+        anterior[i] = -1;
+        ordem_inicial[i] = i; //Inicializa o vetor com os vértices em sequência
+        vertices[i].processado = 0; //Marca todos os vértices como não processado
+        vertices[i].reduzido = 0;
+        vertices[i].reduzido_processado = 0;
+    }
+    distancia[inicio] = 0;
+
+    //Preparar ordem inicial
+    for(int i=inicio; i>0; i--){
+       ordem_inicial[i] =ordem_inicial[i-1];
+    }
+    ordem_inicial[0] = inicio;
+
+    //Repete o relaxamento por n(G) - 1
+    for(int i=0; i<n_vertices; i++){
         
+        imprimirOrdem(ordem_inicial, n_vertices, i);
+
+        //Percorre todos os vertices para percorrer as adjacencias
+        for(int j=0; j<n_vertices; j++){
+
+            int origem = ordem_inicial[j];
+
+            Arco *atual = vertices[origem].adjacencias;
+
+            //Percorre todas as adjacencias do vertice de origem
+            while(atual != NULL){
+                int u = origem;
+                int v = atual->destino;
+                int custo = atual->custo;
+
+                if((distancia[u] != 100000) && (distancia[u] + custo < distancia[v]) ){
+                    distancia[v] = distancia[u] + custo;
+                    anterior[v] = u;
+
+                    //Se o vértice foi reduzido após ser processado
+                    if(vertices[v].processado == 0){
+                        vertices[v].reduzido = 1; //Vertice foi reduzido e só foi processado depois
+                    } else {
+                        vertices[v].reduzido_processado = 1;
+                        vertices[v].reduzido = 0;
+                    }
+
+                    
+                }
+                //Marca como processado
+                vertices[origem].processado = 1;
+    
+                //Vai para o proximo arco da lista de adjacencias do vertice de origem
+                atual = atual->prox;
+            }
+
+        }
+
+        //Alterar ordem
+
+        int nova_ordem[n_vertices];
+        
+        //Vértices reduzidos após serem processados
+        int ki=0;
+        for(int k=0; k<n_vertices; k++){
+            if(vertices[ordem_inicial[k]].reduzido_processado == 1){
+                nova_ordem[ki] = ordem_inicial[k];
+                ki++;
+            }
+        }
+
+        //Vértices reduzidos e depois processados
+        for(int k=0; k<n_vertices; k++){
+            if(vertices[ordem_inicial[k]].reduzido == 1){
+                nova_ordem[ki] = ordem_inicial[k];
+                ki++;
+
+            }
+        }
+
+        //Vértices que não foram reduzidos
+        for(int k=0; k<n_vertices; k++){
+            if(vertices[ordem_inicial[k]].reduzido == 0 && vertices[ordem_inicial[k]].reduzido_processado == 0){
+                nova_ordem[ki] = ordem_inicial[k];
+                ki++;
+            }
+        }
+
+        for(int l=0; l<n_vertices; l++){
+            ordem_inicial[l] = nova_ordem[l]; 
+        }
+        
+        //Desmarcar vértices
+        for(int f=0; f<n_vertices; f++){
+            vertices[f].processado = 0;
+            vertices[f].reduzido = 0;
+            vertices[f].reduzido_processado = 0;
+        }
         
     }
 
-    
-    
-
+    imprimirCaminhos(vertices, anterior, distancia, n_vertices, inicio);
 
 }
 
